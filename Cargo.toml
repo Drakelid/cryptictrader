@@ -13,3 +13,6 @@ url = "2"
 ordered-float = "3"
 warp = "0.3"
 parking_lot = "0.12"
+log = "0.4"
+env_logger = "0.10"
+chrono = { version = "0.4", default-features = false, features=["clock"] }

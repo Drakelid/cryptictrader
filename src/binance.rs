@@ -1,9 +1,9 @@
+use crate::orderbook::OrderBook;
 use futures_util::StreamExt;
 use serde::Deserialize;
 use tokio::io::{self, AsyncReadExt};
+use tokio::time::{Duration, sleep};
 use tokio_tungstenite::{connect_async, tungstenite::Message};
-use tokio::time::{sleep, Duration};
-use crate::orderbook::OrderBook;
 
 #[derive(Debug, Deserialize)]
 struct DepthUpdate {
@@ -86,4 +86,3 @@ where
     }
     Ok(())
 }
-

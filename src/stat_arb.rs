@@ -6,7 +6,10 @@ pub struct StatArb {
 
 impl StatArb {
     pub fn new(window: usize) -> Self {
-        Self { window, history: Vec::new() }
+        Self {
+            window,
+            history: Vec::new(),
+        }
     }
 
     pub fn update(&mut self, p1: f64, p2: f64) -> Option<f64> {

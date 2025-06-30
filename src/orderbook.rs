@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use ordered_float::OrderedFloat;
+use std::collections::BTreeMap;
 
 #[derive(Default, Debug)]
 pub struct OrderBook {
