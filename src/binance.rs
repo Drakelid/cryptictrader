@@ -13,7 +13,10 @@ struct DepthUpdate {
     asks: Vec<(String, String)>,
 }
 
-pub async fn stream_depth(symbol: &str) -> tokio::io::Result<()> {
+pub async fn stream_depth<F>(symbol: &str, mut on_update: F) -> tokio::io::Result<()>
+where
+    F: FnMut(&OrderBook) + Send,
+{
     let url_str = format!("wss://stream.binance.com:9443/ws/{}@depth", symbol);
     let url = url::Url::parse(&url_str).expect("invalid url");
     println!("Connecting to {}", url);
@@ -36,9 +39,7 @@ pub async fn stream_depth(symbol: &str) -> tokio::io::Result<()> {
                                     ob.update_ask(p, q);
                                 }
                             }
-                            if let Some(imbalance) = ob.imbalance() {
-                                println!("Imbalance: {:.4}", imbalance);
-                            }
+                            on_update(&ob);
                         }
                     }
                     Ok(Message::Close(_)) => break,
@@ -58,7 +59,10 @@ pub async fn stream_depth(symbol: &str) -> tokio::io::Result<()> {
     Ok(())
 }
 
-pub async fn stream_depth_offline(path: &str) -> io::Result<()> {
+pub async fn stream_depth_offline<F>(path: &str, mut on_update: F) -> io::Result<()>
+where
+    F: FnMut(&OrderBook) + Send,
+{
     let mut file = tokio::fs::File::open(path).await?;
     let mut buf = String::new();
     file.read_to_string(&mut buf).await?;
@@ -76,9 +80,7 @@ pub async fn stream_depth_offline(path: &str) -> io::Result<()> {
                     ob.update_ask(p, q);
                 }
             }
-            if let Some(imbalance) = ob.imbalance() {
-                println!("Imbalance: {:.4}", imbalance);
-            }
+            on_update(&ob);
             sleep(Duration::from_millis(100)).await;
         }
     }
