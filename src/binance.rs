@@ -1,6 +1,8 @@
 use futures_util::StreamExt;
-use tokio_tungstenite::{connect_async, tungstenite::Message};
 use serde::Deserialize;
+use tokio::io::{self, AsyncReadExt};
+use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio::time::{sleep, Duration};
 use crate::orderbook::OrderBook;
 
 #[derive(Debug, Deserialize)]
@@ -53,6 +55,33 @@ pub async fn stream_depth(symbol: &str) -> tokio::io::Result<()> {
         }
     }
 
+    Ok(())
+}
+
+pub async fn stream_depth_offline(path: &str) -> io::Result<()> {
+    let mut file = tokio::fs::File::open(path).await?;
+    let mut buf = String::new();
+    file.read_to_string(&mut buf).await?;
+
+    let mut ob = OrderBook::default();
+    for line in buf.lines() {
+        if let Ok(update) = serde_json::from_str::<DepthUpdate>(line) {
+            for (p, q) in update.bids {
+                if let (Ok(p), Ok(q)) = (p.parse::<f64>(), q.parse::<f64>()) {
+                    ob.update_bid(p, q);
+                }
+            }
+            for (p, q) in update.asks {
+                if let (Ok(p), Ok(q)) = (p.parse::<f64>(), q.parse::<f64>()) {
+                    ob.update_ask(p, q);
+                }
+            }
+            if let Some(imbalance) = ob.imbalance() {
+                println!("Imbalance: {:.4}", imbalance);
+            }
+            sleep(Duration::from_millis(100)).await;
+        }
+    }
     Ok(())
 }
 

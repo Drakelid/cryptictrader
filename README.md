@@ -9,4 +9,9 @@ order book imbalance. Run with:
 cargo run --release -- btcusdt
 ```
 
-If network access is unavailable the program will exit after printing an error.
+If network access is unavailable the program can replay depth updates from a
+file using `--file`:
+
+```bash
+cargo run --release -- --file sample_depth.json
+```
